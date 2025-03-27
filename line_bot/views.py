@@ -131,7 +131,6 @@ def handle_postback_message(event):
 
         finally:
             if error_message:
-                print(reply_message)
                 line_bot_api.reply_message(error_message)
 
         return http.HttpResponse("OK")

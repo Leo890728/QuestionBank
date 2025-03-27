@@ -6,7 +6,7 @@ import traceback
 import hashlib
 
 from types import TracebackType
-from typing import List, Union, overload, Optional, Type
+from typing import Any, List, Union, overload, Optional, Type
 from copy import deepcopy
 
 from question_bank.models import (
@@ -20,7 +20,7 @@ from question_bank.models import (
 
 from question_bank.exception import CategoryNotFoundError, SubjectNotFoundError, QuestionNotFoundError, OptionNotFoundError
 
-from sqlmodel import SQLModel, create_engine, select, Session as SQLModelSession
+from sqlmodel import SQLModel, create_engine, select, Sequence, Session as SQLModelSession
 from sqlalchemy import ScalarResult, Select
 from sqlalchemy.orm import subqueryload
 from sqlalchemy.exc import OperationalError
@@ -32,7 +32,7 @@ __all__ = ["QuestionBank", "QuestionRandomizer"]
 load_dotenv()
 
 # 資料庫連接字串
-DATABASE_URL = os.environ.get("SQL_CONNECT_STRING")
+DATABASE_URL = os.environ.get("SQL_CONNECT_STRING") or ''
 
 # 建立引擎
 engine = create_engine(DATABASE_URL)
@@ -68,14 +68,14 @@ class QuestionBank:
             return result
 
     @overload
-    def get_category(self) -> List[Category]:
+    def get_category(self) -> Sequence[Category]:
         ...
 
     @overload
     def get_category(self, *, category_id: int) -> Category:
         ...
 
-    def get_category(self, *, category_id: int=None) -> Union[List[Category], Category]:
+    def get_category(self, *, category_id: Optional[int]=None) -> Union[Sequence[Category], Category]:
         statement = select(Category) if category_id is None else select(Category).filter_by(category_id=category_id)
         categorys = self._execute(statement).all()
         if category_id is not None:
@@ -86,14 +86,14 @@ class QuestionBank:
             return categorys
     
     @overload
-    def get_subject(self, *, category_id: int) -> List[Subject]:
+    def get_subject(self, *, category_id: int) -> Sequence[Subject]:
         ...
         
     @overload
     def get_subject(self, *, category_id: int, subject_id: int) -> Subject:
         ...
     
-    def get_subject(self, *, category_id: int, subject_id: int=None) -> Union[List[Subject], Subject]:
+    def get_subject(self, *, category_id: int, subject_id: Optional[int]=None) -> Union[Sequence[Subject], Subject]:
         if subject_id is None:
             statement = select(Subject).filter_by(category_id=category_id)
             result = self._execute(statement).all()
@@ -107,14 +107,14 @@ class QuestionBank:
             return result
         
     @overload
-    def get_questions(self, *, category_id: int, subject_id: int) -> List[Question]:
+    def get_questions(self, *, category_id: int, subject_id: int) -> Sequence[Question]:
         ...
     
     @overload
     def get_questions(self, *, category_id: int, subject_id: int, question_id: int) -> Question:
         ...
         
-    def get_questions(self, *, category_id: int, subject_id: int, question_id: int=None) -> Union[List[Question], Question]:
+    def get_questions(self, *, category_id: int, subject_id: int, question_id: Optional[int]=None) -> Union[Sequence[Question], Question]:
         statement = (
             select(Question).options(
                 subqueryload(Question.category),
@@ -135,14 +135,14 @@ class QuestionBank:
         return result
     
     @overload
-    def get_option(self, *, category_id: int, subject_id: int, question_id: int) -> List[QuestionOption]:
+    def get_option(self, *, category_id: int, subject_id: int, question_id: int) -> Sequence[QuestionOption]:
         ...
     
     @overload
     def get_option(self, *, category_id: int, subject_id: int, question_id: int, option_id: int) -> QuestionOption:
         ...
     
-    def get_option(self, *, category_id: int, subject_id: int, question_id: int, option_id: int=None) -> Union[List[QuestionOption], QuestionOption]:
+    def get_option(self, *, category_id: int, subject_id: int, question_id: int, option_id: Optional[int]=None) -> Union[Sequence[QuestionOption], QuestionOption]:
         statement = (select(Question)
                      .where(Question.category_id==category_id, Question.subject_id==subject_id, Question.question_id==question_id))
         question = self._execute(statement).first()
@@ -178,24 +178,24 @@ class QuestionBank:
     
 
 class QuestionRandomizer:
-    def __init__(self, question, random_seed):
-        self.random_seed = random_seed
-        self.question = deepcopy(question)
+    def __init__(self, question: Question, random_seed: int):
+        self.random_seed: int = random_seed
+        self.question: Question = deepcopy(question)
         self.seed_generator = random.Random(self.random_seed + int(hashlib.md5(self.question.content.encode()).hexdigest()[:10], 16)).random
         random.Random(self.seed_generator()).shuffle(self.question.options)
 
-    def process_variables(self):
+    def process_variables(self) -> None:
     
-        def randint(a, b):
+        def randint(a: int, b: int):
             return random.Random(self.seed_generator()).randint(a, b)
 
-        def uniform(a, b):
+        def uniform(a: float, b: float):
             return random.Random(self.seed_generator()).uniform(a, b)
 
-        def uniform_r(a, b, ndigits):
+        def uniform_r(a: float, b: float, ndigits: int):
             return round(uniform(a, b), ndigits)
 
-        def choice(seq):
+        def choice(seq: List[Any]):
             return random.Random(self.seed_generator()).choice(seq)
 
         safe_function = [
