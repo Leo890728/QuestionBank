@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load avatar_tags %}
+
+    {% block title %}
+        個人檔案 | {{ block.super }} 
+    {% endblock title %}
+
+    {% block style-sheet %}
+        {{ block.super }}
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" integrity="sha512-UtLOu9C7NuThQhuXXrGwx9Jb/z9zPQJctuAgNUBK3Z6kkSYT9wJ+2+dh6klS+TDBCV9kNPBbAxbVD+vCcfGPaA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    {% endblock style-sheet %}
+        
+    
+{% block css %}
+    <style>
+        :root {
+            --swiper-navigation-size: 20px;
+        }
+
+        body {
+            background-color: rgb(10, 0, 20);
+            padding-top: 100px;
+        }
+
+        .profile {
+            width: clamp(300px, 70%, 1200px);
+            margin: auto;
+            color: white;
+
+            .avatar-content {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+
+                .avatar-title {
+                    align-self: flex-start;
+                }
+
+                .avatar {
+                    position: relative;
+                    width: 150px;
+                    height: 150px;
+                    overflow: hidden;
+                    border-radius: 50%;
+                    box-shadow: 0 0 0 .25rem rgba(255, 255, 255, 0.7);
+                    margin: 20px 0 0 20px;
+                    
+                    .user-avatar {
+                        width: 100%;
+                        height: 100%;
+                    }
+
+                    .avatar-upload-overlay {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        position: absolute;
+                        width: 100%;
+                        height: 100%;
+                        top: 0;
+                        left: 0;
+                        background-color: transparent;
+                        color: transparent;
+                        transition: background-color 0.3s, color 0.5s;
+                        cursor: pointer;
+                    }
+
+                    .avatar-upload-overlay:hover {
+                        color: white;
+                        background-color: rgba(0, 0, 0, 0.7);
+                    }
+                }
+            }
+        }
+
+        .alert {
+            width: 100%;
+        }
+
+        .img-container img {
+            max-width: 100%;
+        }
+
+    </style>
+{% endblock css %}
+
+
+{% block body %}
+    {{ block.super }}
+    <div class="profile">
+        <h2>個人檔案</h2>
+        <hr>
+        <div class="row gy-5 justify-content-center">
+
+            <div class="col-md-3">
+                <div class="avatar-content">
+                    <div class="avatar-title">大頭貼</div>
+                    <div class="avatar">
+                        {% avatar user 150 class="user-avatar" %}
+                        <div class="avatar-upload-overlay">上傳<br>圖片</div>
+                    </div>
+                    <input type="file" class="sr-only d-none" id="avatar-file-input" name="image" accept="image/*">
+                </div>
+            </div>
+
+            <form class="col-lg" method="post">
+                {% csrf_token %}
+                
+                <!-- <a href="{% url 'avatar:change' %}">Change your avatar</a> -->
+                <label for="name">名稱</label>
+                <input type="text" class="form-control mb-3" id="name" name="name" value="{{ user_profile.name }}" placeholder="3 ~ 30 長度">
+                {% if user_profile_form.name.errors %}
+                    <div class="form-errors">
+                        {{ user_profile_form.name.errors }}
+                    </div>
+                {% endif %}
+    
+    
+                <label for="biography">簡介</label>
+                <textarea type="text" class="form-control mb-3" id="biography" name="biography" placeholder="200字以內" rows="3">{{ user_profile.biography }}</textarea>
+                {% if user_profile_form.biography.errors %}
+                    <div class="form-errors">
+                        {{ user_profile_form.biography.errors }}
+                    </div>
+                {% endif %}
+                
+                <ul class="form-errors">
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+                <button class="btn btn-primary" type="submit">儲存</button>
+            </form>
+
+        </div>
+        
+        <div class="modal fade" id="avatar-cropper-modal" tabindex="-1" data-bs-backdrop="static" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalLabel">裁切圖片</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close">
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="img-container">
+                            <img id="cropper-image" src="https://placehold.co/500x500">
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <div class="progress w-100">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                        </div>
+                        <div class="alert" role="alert"></div>
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="$('#avatar-file-input').trigger('click');"><i class="bi bi-upload"></i> 重新上傳圖片</button>
+                        <button type="button" class="btn btn-primary" id="crop"><i class="bi bi-scissors"></i> 裁切</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    
+{% endblock body %}
+
+
+{% block after-load-scripts %}
+    {{ block.super }}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js" integrity="sha512-JyCZjCOZoyeQZSd5+YEAcFgz2fowJ1F1hyJOXgtKu4llIa0KneLcidn5bwfutiehUTiOuK87A986BZJMko0eWQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+{% endblock after-load-scripts %}
+    
+{% block script %}
+    <script>
+
+        $(document).ready(function () {
+            var cropperImage = $('#cropper-image');
+            var avatarFileInput = $('#avatar-file-input');
+            var avatarImage = $('.user-avatar');
+            var $progress = $('.progress');
+            var $progressBar = $('.progress-bar');
+            var $alert = $('.alert');
+            var $avatarCropperModal = $('#avatar-cropper-modal');
+            var cropper;
+            var modalCropButton = $("#crop");
+            var modelPrimaryCheckbox = $("#setAvatarPrimary");
+
+            $(".avatar-upload-overlay").on("click", function () {
+                avatarFileInput.trigger('click');
+            });
+
+            avatarFileInput.on('change', function (e) {
+                var files = e.target.files;
+                var reader;
+                var file;
+                var url;
+
+                if (files && files.length > 0) {
+                    file = files[0];
+
+                    if (URL) {
+                        openCropperModal(URL.createObjectURL(file));
+                    } else if (FileReader) {
+                        reader = new FileReader();
+                        reader.onload = function (e) {
+                            openCropperModal(reader.result);
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                    avatarFileInput.val('');
+                }
+            });
+
+            function openCropperModal(url) {
+                cropperImage.attr("src", url);
+                $alert.hide();
+                $avatarCropperModal.modal('show');
+            };
+
+            $avatarCropperModal.on('shown.bs.modal', function () {
+                cropper = new Cropper(cropperImage.get(0), {
+                    aspectRatio: 1,
+                    viewMode: 1,
+                });
+                $progress.hide();
+            }).on('hidden.bs.modal', function () {
+                cropper.destroy();
+                cropper = null;
+            });
+
+            modalCropButton.on('click', function () {
+                var canvas;
+
+                $progress.show(100);
+                $alert.hide();
+
+                if (cropper) {
+                    canvas = cropper.getCroppedCanvas({
+                        width: 600,
+                        height: 600,
+                    });
+                    avatarImage.attr("src", canvas.toDataURL());
+                    $progress.show();
+                    $alert.removeClass('alert-success alert-warning');
+                    canvas.toBlob(function (blob) {
+                        var formData = new FormData();
+                        var method;
+                        var url;
+                        
+                        formData.append('avatar', blob, 'avatar.jpg');
+                        formData.append('primary', true);
+
+                        $.ajax("../api/avatar/", {
+                            method: "POST",
+                            data: formData,
+                            processData: false,
+                            contentType: false,
+                            headers: {
+                                'X-CSRFToken': "{{ csrf_token }}"
+                            },
+
+                            xhr: function () {
+                                var xhr = new XMLHttpRequest();
+
+                                xhr.upload.onprogress = function (e) {
+                                    var percent = '0';
+                                    var percentage = '0%';
+
+                                    if (e.lengthComputable) {
+                                        percent = Math.round((e.loaded / e.total) * 100);
+                                        percentage = percent + '%';
+                                        $progressBar.width(percentage).attr('aria-valuenow', percent).text(percentage);
+                                    }
+                                };
+
+                                return xhr;
+                            },
+
+                            success: function (data) {
+                                $alert.show().addClass('alert-success').text('Upload success');
+                                console.log(data);
+                                
+
+                            },
+                            error: function () {
+                                $alert.show().addClass('alert-warning').text('Upload error');
+                            },
+
+                            complete: function () {
+                                $progress.hide(100);
+                            },
+                        });
+                    });
+                }
+            });
+        });
+    </script>
+{% endblock script %}

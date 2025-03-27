@@ -1,0 +1,346 @@
+{% load static %}
+{% load socialaccount %}
+{% load allauth %}
+{% load i18n %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登入 QuizNova</title>
+    <link rel="shortcut icon" href="{% static 'img/icon.png' %}" type="image/x-icon">
+    <link rel="stylesheet" href="{% static 'css/login_button.css' %}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <style>
+
+        .container {
+            display: flex;
+            align-items: center;
+            margin: auto;
+            max-width: 600px;
+            flex-direction: column;
+            border-radius: 20px;
+            filter: drop-shadow(16px 16px 20px rgba(130, 130, 130, 0.7));
+
+            .logo {
+                width: 75%;
+                margin: 50px 0 50px 0;
+            }
+
+            .social-login-button-container {
+                display: flex;
+                width: 100%;
+                height: 100%;
+                align-items: center;
+                justify-content: center;
+                column-gap: 20px;
+
+                .row {
+                    align-items: center;
+                    .form-col {
+                        display: flex;
+                        justify-content: center;
+                        margin-bottom: 20px;
+                    }
+                }
+            }
+        }
+
+        .divider {
+            display: flex;
+            width: 80%;
+            align-items: center;
+            text-align: center;
+            margin: 20px 0;
+            color: #ccc;
+        }
+        .divider::before,
+        .divider::after {
+            content: "";
+            flex: 1;
+            border-top: 1px solid #ccc;
+        }
+        .divider::before {
+            margin-right: 10px; 
+        }
+        .divider::after {
+            margin-left: 10px;
+        }
+
+        #hero-background{
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: absolute;
+            z-index: -1;
+            background-position: center;
+            
+            #scene {
+                display: flex;
+                width: 100%;
+                height: 100%;
+                align-items: center;
+                justify-content: center;
+                
+                #background-video {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    scale: 1.2;
+                    filter: blur(5px) brightness(50%);
+                }
+            }
+        }
+
+        .form-swiper {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            
+            .swiper-slide {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-direction: column;
+                width: 100%;
+
+                .form-elm {
+                    display: flex;
+                    align-items: stretch;
+                    justify-content: center;
+                    flex-direction: column;
+                    width: 80%;
+                    backface-visibility: hidden;
+                    -webkit-backface-visibility: hidden;
+
+                    .form-floating {
+                        width: 100%;
+
+                        label {
+                            color: lightgray;
+                            text-indent: 10px;
+                        }
+
+                        input {
+                            border-radius: 25px;
+                            background-color: rgb(255, 255, 255, 0.1);
+                            color: white;
+                            text-indent: 10px;
+                            border-width: 0;
+                        }
+                    }
+
+                    .form-errors {
+                        color: red;
+                        font-weight: bold;
+                    }
+
+                    button {
+                        width: 100%;
+                        background-color: rgb(255, 255, 255, 0.8);
+                        border-radius: 25px;
+                    }
+
+                    .navigation {
+                        color: lightgray;
+                    }
+
+                    .navigation:hover {
+                        text-decoration: underline;
+                    }
+                }
+            }
+        }
+        
+    </style>
+</head>
+<body>
+    <div id="hero-background">
+        <div id="scene">
+            <video autoplay muted loop id="background-video" data-depth="0.2">
+                <source src="{% static '/video/background-hd_1280_720_30fps.mp4' %}" type="video/mp4">
+            </video>
+        </div>
+    </div>
+    <div class="container">
+        <img class="logo" src="{% static 'img/logo.png' %}" alt="QuizNova-Logo">
+        <div class="form-swiper">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide" data-hash="signin">
+                    <form id="signin-form" method="post" class="form-elm" data-swiper-parallax="-10%">
+                        {% csrf_token %}
+                        <div data-swiper-parallax="-300">
+                            <div class="form-floating mb-3 mt-3">
+                                <input type="text" class="form-control" id="username" name="username" placeholder="">
+                                <label for="username">使用者帳號</label>
+                            </div>
+                            {% if signin_form.username.errors %}
+                                <div class="form-errors">
+                                    {{ signin_form.username.errors }}
+                                </div>
+                            {% endif %}
+            
+                        </div>
+                        <div data-swiper-parallax="-200">
+                            <div class="form-floating mb-3">
+                                <input type="password" class="form-control" id="password" name="password" placeholder="">
+                                <label for="password">密碼</label>
+                            </div>
+                            {% if signin_form.password.errors %}
+                                <div class="form-errors">
+                                    {{ signin_form.password.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3" data-swiper-parallax="-100">
+                            <button class="btn btn-lg" type="submit" form="signin-form" name="action" value="signin">登入</button>
+                        </div>
+                        <ul class="form-errors">
+                            {% for message in messages %}
+                                {% if "signin" in message.tags %}
+                                    <li>{{ message }}</li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                        <p class="navigation signup-navigation">沒有帳號? 註冊</p>
+                    </form>
+                </div>
+                <div class="swiper-slide" data-hash="signup">
+                    <form id="signup-form" method="post" class="form-elm"> 
+                        {% csrf_token %}
+                        <div data-swiper-parallax="-500">
+                            <div class="form-floating mb-3 mt-3">
+                                <input type="email" class="form-control" id="email" name="email" placeholder="">
+                                <label for="email">電子郵件地址</label>
+                            </div>
+                            {% if signup_form.email.errors %}
+                                <div class="form-errors">
+                                    {{ signup_form.email.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div data-swiper-parallax="-400">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="username" name="username" placeholder="">
+                                <label for="username">使用者帳號</label>
+                            </div>
+                            {% if signup_form.username.errors %}
+                                <div class="form-errors">
+                                    {{ signup_form.username.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div data-swiper-parallax="-300">
+                            <div class="form-floating mb-3">
+                                <input type="password" class="form-control" id="password1" name="password1" placeholder="">
+                                <label for="password1">密碼</label>
+                            </div>
+                            {% if signup_form.password1.errors %}
+                                <div class="form-errors">
+                                    {{ signup_form.password1.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div data-swiper-parallax="-200">
+                            <div class="form-floating mb-3">
+                                <input type="password" class="form-control" id="password2" name="password2" placeholder="">
+                                <label for="password2">確認密碼</label>
+                            </div>
+                            {% if signup_form.password2.errors %}
+                                <div class="form-errors">
+                                    {{ signup_form.password2.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3" data-swiper-parallax="-100">
+                            <button class="btn btn-lg" type="submit" form="signup-form" name="action" value="signup">註冊</button>
+                        </div>
+                        <ul class="form-errors">
+                            {% for message in messages %}
+                                {% if "signup" in message.tags %}
+                                    <li>{{ message }}</li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                        <p class="navigation signin-navigation">已經有帳號? 登入</p>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="divider">or</div>
+
+        <div class="social-login-button-container container">
+            <div class="row">
+                <form class="form-col col-sm-auto" method="post" action="{% provider_login_url 'line' method='oauth2' %}">
+                    {% csrf_token %}
+                    <button class="line-login-button" type="submit">
+                        <img class="line-logo" src="{% static 'img/line_logo.png' %}" alt="Line-Login-Logo">
+                        <hr class="line-vertical-line">
+                        <span class="button-text">與LINE連動</span>
+                    </button>
+                </form>
+    
+                <form class="form-col col-sm-auto" method="post" action="{% provider_login_url 'google' method='oauth2' %}">
+                    {% csrf_token %}
+                    <button class="gsi-material-button" type="submit">
+                        <div class="gsi-material-button-state"></div>
+                        <div class="gsi-material-button-content-wrapper">
+                            <div class="gsi-material-button-icon">
+                                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" xmlns:xlink="http://www.w3.org/1999/xlink" style="display: block;">
+                                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+                                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+                                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+                                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+                                    <path fill="none" d="M0 0h48v48H0z"></path>
+                                </svg>
+                            </div>
+                            <span class="gsi-material-button-contents">使用 Google 帳號登入</span>
+                            <span style="display: none;">Sign in with Google</span>
+                        </div>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function(){
+            window.location = '#{{ status }}'
+        });
+        $(".gsi-material-button").on("click", function () {
+            location.href = "{% provider_login_url 'google' method='oauth2' %}";
+        })
+        $(".line-login-button").on("click", function () {
+            location.href = "{% provider_login_url 'line' method='oauth2' %}";
+        })
+        const swiper = new Swiper('.form-swiper', {
+            effect: "flip",
+            allowTouchMove: false,
+            hashNavigation: true,
+            // Optional parameters
+            // direction: 'horizontal',
+            loop: false,
+
+            // If we need pagination
+            pagination: {
+                el: '.swiper-pagination',
+            },
+
+            parallax: true,
+
+            // Navigation arrows
+            navigation: {
+                nextEl: '.signup-navigation',
+                prevEl: '.signin-navigation',
+            },
+
+        });
+    </script>
+</body>
+</html>

@@ -15,18 +15,25 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from django.shortcuts import redirect
 
 import line_bot
 import line_bot.views
 
+import website
+
 import question_bank.views
+import website.views
 
 
 urlpatterns = [
-    path("admin/", admin.site.urls, name='admin'),
+    path("", lambda request: redirect("QuizNova/index/", permanent=True)),
 
-    path("line-bot/", line_bot.views.callback, name='line_bot_callback'),
+    path("QuizNova/", include("website.urls")),
+    path("line-bot/", include("line_bot.urls")),
+
+    path("admin/", admin.site.urls, name='admin'),
 
     path("category/", question_bank.views.category, name='category_list'),
     path("category/<int:category_id>/", question_bank.views.category, name='category_detail'),

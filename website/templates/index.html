@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} 首頁 | {{ block.super }}{% endblock %}
+
+{% block external-scripts %}
+    {{ block.super }}
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/parallax/3.1.0/parallax.min.js"></script>
+{% endblock %}
+
+{% block css %}
+    <style>
+        @font-face {
+            font-family: Cubic_11;
+            src: url("{% static 'font/Cubic_11.woff2' %}"),
+                url("{% static 'font/Cubic_11.woff' %}");
+        }
+
+        .category-card-container {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+        }
+
+        .category-card {
+            width: 200px;
+            height: 200px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+            background-size: cover;
+            transition: transform 0.5s, box-shadow 0.5s;
+            cursor: pointer;
+
+            & .category-card-background {
+                position: relative;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(to top, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.10));
+                border-radius: 5px;
+                
+            }
+
+            & .category-name {
+                position: absolute;
+                color: white;
+                margin: 0px;
+                bottom: 10px;
+                left: 10px;
+                font-size: large;
+            }
+
+            &:hover {
+                transform: scale(1.2);
+                box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.4), 0 12px 40px 0 rgba(0, 0, 0, 0.40);
+            }
+        }
+        
+        #hero-background{
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            
+            #scene {
+                display: flex;
+                width: 100%;
+                height: 100%;
+                align-items: center;
+                justify-content: center;
+                
+                #background-video {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    scale: 1.2;
+                }
+            }
+        }
+
+        #hero-content {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            bottom: 0;
+            left: 0;
+            background: rgba(0, 0, 0, 0.5);
+            color: #f1f1f1;
+            width: 100%;
+            height: 100%;
+            backdrop-filter: blur(5px);
+            font-family: Cubic_11;
+
+            & .content-title {
+                font-size: clamp(40px, calc(100vw / 6), 150px);
+            }
+
+            & .content-subtitle {
+                font-size: clamp(12px, calc(100vw / 28), 60px);
+            }
+
+            & #start-button {
+                background-image: linear-gradient(to right, #4776E6 0%, #8E54E9  51%, #4776E6  100%);
+                margin: 10px;
+                padding: 15px 45px;
+                text-align: center;
+                text-transform: uppercase;
+                transition: 0.5s;
+                background-size: 200% auto;
+                color: white;            
+                box-shadow: 0 0 20px #eee;
+                border-radius: 10px;
+                display: block;
+                border-color: rgba(255, 255, 255, 0.215);
+            }
+
+            & #start-button:hover {
+                background-position: right center; 
+                color: #fff;
+                text-decoration: none;
+            }
+        
+        }
+
+        .fade-in-text {
+            transform: scale(0.94);
+            animation: scale 3s forwards cubic-bezier(0.5, 1, 0.89, 1);
+
+            span {
+                display: inline-block;
+                opacity: 0;
+                filter: blur(4px);
+            }
+        }
+        
+        @keyframes scale {
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes fade-in {
+            100% {
+                opacity: 1;
+                filter: blur(0);
+            }
+        }
+
+        .main-content {
+            width: 100%;
+            height: 100vh;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {{ block.super }}
+    <div id="hero-background">
+        <div id="scene">
+            <video autoplay muted loop id="background-video" data-depth="0.2">
+                <source src="{% static '/video/background-hd_1280_720_30fps.mp4' %}" type="video/mp4">
+            </video>
+        </div>
+    </div>
+
+    <div id="hero-content">
+        <h1 class="content-title fade-in-text"><span>題</span><span>庫</span><span>星</span><span>雲</span></h1>
+        <p class="content-subtitle fade-in-text">
+            <span>茫</span>
+            <span>茫</span>
+            <span>題</span>
+            <span>庫</span>
+            <span>中</span>
+            <span>，</span>
+            <span>凝</span>
+            <span>聚</span>
+            <span>你</span>
+            <span>的</span>
+            <span>知</span>
+            <span>識</span>
+            <span>星</span>
+            <span>球</span></p>
+        <button type="button" id="start-button">立即開始</button>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script>
+        var scene = document.getElementById('scene');
+        var parallaxInstance = new Parallax(scene);
+
+        $(".fade-in-text span").each((index, element) => {
+            $(element).css({
+                animation: 'fade-in 0.8s forwards cubic-bezier(0.11, 0, 0.5, 0)',
+                animationDelay: `${0.1 * index}s`
+            });
+        });
+
+        $("#start-button").on("click", () => {
+            location.href = "{% url 'profile' %}"
+        })
+
+        const app = Vue.createApp({
+            data() {
+                return {
+                    categorys: []
+                }
+            },
+            mounted() {
+                $.get(location.origin + "/category/", (data) => {
+                    this.categorys = data;
+                });
+            }
+        });
+        
+        app.mount("#app");
+    </script>
+{% endblock %}
+
+<!-- {% verbatim %}
+<div id="app">
+    <div class="category-card-container">
+        <div v-for="category in categorys" class="category-card" :style="{ backgroundImage: 'url(' + category.background_image + ')' }">
+            <div class="category-card-background" >
+                <p class="category-name">{{ category.name }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endverbatim %} -->
