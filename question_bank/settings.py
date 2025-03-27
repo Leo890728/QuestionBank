@@ -29,7 +29,9 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", get_random_secret_key())
 DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', "").split(",")
-
+CSRF_TRUSTED_ORIGINS = os.getenv('DJANGO_CSRF_TRUSTED_ORIGINS', "").split(",")
+CSRF_ALLOWED_ORIGINS = os.getenv('DJANGO_CSRF_ALLOWED_ORIGINS', "").split(",")
+CSRF_ORIGINS_WHITELIST = os.getenv('DJANGO_CSRF_ORIGINS_WHITELIST', "").split(",")
 
 # Application definition
 
@@ -40,7 +42,57 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+
+    # allauth
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+
+    # google provider
+    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.line',
+
+    # django-avatar
+    'avatar',
+    'rest_framework',
+
+    "website",
+    "line_bot"
 ]
+
+AVATAR_PROVIDERS = (
+    'avatar.providers.PrimaryAvatarProvider',
+    'website.providers.LineAvatarProvider',
+    'website.providers.GoogleAvatarProvider',
+    'avatar.providers.DefaultAvatarProvider',
+    # 'avatar.providers.LibRAvatarProvider',
+    # 'avatar.providers.GravatarAvatarProvider',
+)
+
+AVATAR_STORAGE_DIR = "static/avatars/"
+AVATAR_MAX_AVATARS_PER_USER = 1
+# AVATAR_AUTO_GENERATE_SIZES = (50, 50)
+AVATAR_DEFAULT_URL = "/img/default_user_avatar.png"
+API_AVATAR_CHANGE_IMAGE = False
+
+# ACCOUNT_AUTHENTICATION_METHOD = "username_email"
+# ACCOUNT_EMAIL_REQUIRED = True
+# ACCOUNT_USERNAME_REQUIRED = False
+SOCIALACCOUNT_PROVIDERS = {
+    'line': {
+        'SCOPE': ['profile', 'openid', 'email'], 
+        'APP': {
+            'client_id': os.getenv("LINE_LOGIN_CHANNEL_CLIEND_ID"),
+            'secret': os.getenv("LINE_LOGIN_CHANNEL_SECRET"),
+        },
+    },
+    'google': {
+        'SCOPE': ['profile', 'email']
+    }
+}
+
+SITE_ID = 1
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -50,8 +102,15 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+
+    # allauth
+    "allauth.account.middleware.AccountMiddleware"
 ]
 
+LOGIN_URL = "/QuizNova/signin-signup/"
+LOGIN_REDIRECT_URL = "/QuizNova/index/"
+LOGOUT_REDIRECT_URL = "/QuizNova/index/"
+# ACCOUNT_DEFAULT_HTTP_PROTOCOL='https'
 ROOT_URLCONF = "question_bank.urls"
 
 TEMPLATES = [
@@ -72,6 +131,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "question_bank.wsgi.application"
 
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -119,6 +183,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = "static/"
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
