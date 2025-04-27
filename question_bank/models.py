@@ -57,7 +57,7 @@ class QuestionOption(SQLModel, table=True):
 
 class QuestionAnswer(SQLModel, table=True):
     question_id: int = Field(foreign_key="question.QuestionID", primary_key=True, nullable=False, sa_column_kwargs={'name': 'QuestionID'})
-    option_id: int = Field(foreign_key="QuestionOption.OptionID", primary_key=True, nullable=False, sa_column_kwargs={'name': 'OptionID'})
+    option_id: int = Field(foreign_key="questionoption.OptionID", primary_key=True, nullable=False, sa_column_kwargs={'name': 'OptionID'})
 
     question: "Question" = Relationship(back_populates="answer")
 
